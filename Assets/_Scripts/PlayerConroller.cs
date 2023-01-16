@@ -9,6 +9,8 @@ namespace AncientDungeons.PlayerControl
 {
     public class PlayerConroller : MonoBehaviour
     {
+        [SerializeField] private float AnimBlendSpeed = 8.9f;
+
         private Rigidbody _playerRigidbody;
         private InputManager _inputManager;
         private Animator _animator;
@@ -31,6 +33,11 @@ namespace AncientDungeons.PlayerControl
             _yVelHash = Animator.StringToHash("Y_Velocity");
         }
 
+        private void FixedUpdate()
+        {
+            Move();
+        }
+
         private void Move()
         {
             if (!_hasAnimator) return;
@@ -38,13 +45,16 @@ namespace AncientDungeons.PlayerControl
             float targetSpeed = _inputManager.Run ? _runSpeed : _walkSpeed;
             if (_inputManager.Move == Vector2.zero) targetSpeed = 0.1f;
 
-            _currentVelocity.x = targetSpeed * _inputManager.Move.x;
-            _currentVelocity.y = targetSpeed * _inputManager.Move.y;
+            _currentVelocity.x = Mathf.Lerp(_currentVelocity.x, _inputManager.Move.x * targetSpeed, AnimBlendSpeed * Time.fixedDeltaTime);
+            _currentVelocity.y = Mathf.Lerp(_currentVelocity.y, _inputManager.Move.y * targetSpeed, AnimBlendSpeed * Time.fixedDeltaTime);
 
             var xVelDifference = _currentVelocity.x - _playerRigidbody.velocity.x;
             var zVelDifference = _currentVelocity.y - _playerRigidbody.velocity.z;
 
             _playerRigidbody.AddForce(transform.TransformVector(new Vector3(xVelDifference, 0, zVelDifference)), ForceMode.VelocityChange);
+
+            _animator.SetFloat(_xVelHash, _currentVelocity.x);
+            _animator.SetFloat(_yVelHash, _currentVelocity.y);
         }
     }
 }
