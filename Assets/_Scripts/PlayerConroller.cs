@@ -10,6 +10,11 @@ namespace AncientDungeons.PlayerControl
     public class PlayerConroller : MonoBehaviour
     {
         [SerializeField] private float AnimBlendSpeed = 8.9f;
+        [SerializeField] private Transform CameraRoot;
+        [SerializeField] private Transform Camera;
+        [SerializeField] private float UpperLimit = -40f;
+        [SerializeField] private float BottomLimit = 70f;
+        [SerializeField] private float MouseSensitity = 21.9f;
 
         private Rigidbody _playerRigidbody;
         private InputManager _inputManager;
@@ -17,6 +22,7 @@ namespace AncientDungeons.PlayerControl
         private bool _hasAnimator;
         private int _xVelHash;
         private int _yVelHash;
+        private float _xRotation;
 
         private const float _walkSpeed = 2f;
         private const float _runSpeed = 6f;
@@ -38,6 +44,11 @@ namespace AncientDungeons.PlayerControl
             Move();
         }
 
+        private void LateUpdate()
+        {
+            CamMovements();
+        }
+
         private void Move()
         {
             if (!_hasAnimator) return;
@@ -55,6 +66,22 @@ namespace AncientDungeons.PlayerControl
 
             _animator.SetFloat(_xVelHash, _currentVelocity.x);
             _animator.SetFloat(_yVelHash, _currentVelocity.y);
+        }
+
+        private void CamMovements()
+        {
+            if (!_hasAnimator) return;
+
+            var Mouse_X = _inputManager.Look.x;
+            var Mouse_Y = _inputManager.Look.y;
+
+            Camera.position = CameraRoot.position;
+
+            _xRotation -= Mouse_Y * MouseSensitity * Time.deltaTime;
+            _xRotation = Mathf.Clamp(_xRotation, UpperLimit, BottomLimit);
+
+            Camera.localRotation = Quaternion.Euler(_xRotation, 0, 0);
+            transform.Rotate(Vector3.up, Mouse_X * MouseSensitity * Time.deltaTime);
         }
     }
 }
